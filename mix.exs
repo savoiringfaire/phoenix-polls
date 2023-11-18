@@ -32,7 +32,7 @@ defmodule Hello.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:nodefinder, github: 'okeuday/nodefinder'},
+      {:nodefinder, github: ~c"okeuday/nodefinder"},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},

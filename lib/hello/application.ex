@@ -7,8 +7,8 @@ defmodule Hello.Application do
 
   @impl true
   def start(_type, _args) do
-    IO.puts "Starting multicast"
-    :nodefinder.multicast_start
+    IO.puts("Starting multicast")
+    :nodefinder.multicast_start()
 
     children = [
       HelloWeb.Telemetry,

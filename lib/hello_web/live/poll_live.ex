@@ -4,8 +4,7 @@ defmodule HelloWeb.PollLive do
   def render(assigns) do
     ~H"""
     Current Votes: <%= @vote_count %><br />
-    <button phx-click="add_vote">Vote</button><br />
-    Expires in: <%= @countdown/1000/60 %>
+    <button phx-click="add_vote">Vote</button> <br /> Expires in: <%= @countdown / 1000 / 60 %>
     """
   end
 

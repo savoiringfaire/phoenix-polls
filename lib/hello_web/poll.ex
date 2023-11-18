@@ -9,8 +9,9 @@ defmodule HelloWeb.Poll do
   end
 
   def init(poll_id) do
-    poll = Hello.Repo.get_by(Hello.Poll, name: poll_id) ||
-      Hello.Repo.insert!(%Hello.Poll{name: poll_id, vote_count: 0})
+    poll =
+      Hello.Repo.get_by(Hello.Poll, name: poll_id) ||
+        Hello.Repo.insert!(%Hello.Poll{name: poll_id, vote_count: 0})
 
     state = %{
       poll: poll,
@@ -50,19 +51,25 @@ defmodule HelloWeb.Poll do
 
     schedule_update(@update_interval)
 
-    Phoenix.PubSub.broadcast(Hello.PubSub, "poll:#{state.poll.name}", {:countdown_update, remaining_time})
-      {:noreply, state}
+    Phoenix.PubSub.broadcast(
+      Hello.PubSub,
+      "poll:#{state.poll.name}",
+      {:countdown_update, remaining_time}
+    )
+
+    {:noreply, state}
   end
 
   def handle_call(:get_vote_count, _from, state) do
     Process.cancel_timer(state.timer_ref)
     new_timer_ref = schedule_timer()
 
-    {:reply, state.poll.vote_count, %{state | timer_ref: new_timer_ref, last_reset_time: :erlang.system_time(:millisecond)}}
+    {:reply, state.poll.vote_count,
+     %{state | timer_ref: new_timer_ref, last_reset_time: :erlang.system_time(:millisecond)}}
   end
 
   def handle_cast(:increment_vote, state) do
-    updated_poll = 
+    updated_poll =
       state.poll
       |> Ecto.Changeset.change(%{vote_count: state.poll.vote_count + 1})
       |> Hello.Repo.update!()
@@ -71,9 +78,19 @@ defmodule HelloWeb.Poll do
     new_timer_ref = schedule_timer()
 
     # Broadcast vote update
-    Phoenix.PubSub.broadcast(Hello.PubSub, "poll:#{state.poll.name}", {:vote_updated, state.poll.vote_count + 1})
+    Phoenix.PubSub.broadcast(
+      Hello.PubSub,
+      "poll:#{state.poll.name}",
+      {:vote_updated, state.poll.vote_count + 1}
+    )
 
-    {:noreply, %{state | poll: updated_poll, timer_ref: new_timer_ref, last_reset_time: :erlang.system_time(:millisecond)}}
+    {:noreply,
+     %{
+       state
+       | poll: updated_poll,
+         timer_ref: new_timer_ref,
+         last_reset_time: :erlang.system_time(:millisecond)
+     }}
   end
 
   defp schedule_timer do
@@ -87,8 +104,10 @@ defmodule HelloWeb.Poll do
   defp ensure_poll_process(poll_id) do
     if :global.whereis_name(poll_id) == :undefined do
       case HelloWeb.PollSupervisor.start_poll(poll_id) do
-        {:ok, _pid} -> :ok
-        {:error, reason} -> 
+        {:ok, _pid} ->
+          :ok
+
+        {:error, reason} ->
           IO.puts(reason)
       end
     else
