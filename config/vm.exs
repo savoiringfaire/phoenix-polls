@@ -1,2 +1,0 @@
--name hello@${HOSTNAME}
--setcookie your_cookie
