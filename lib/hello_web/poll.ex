@@ -2,7 +2,6 @@ defmodule HelloWeb.Poll do
   use GenServer, restart: :temporary
 
   @inactive_timeout 2 * 60 * 60 * 1000
-  @update_interval 100
 
   def start_link(poll_id) do
     GenServer.start_link(__MODULE__, poll_id, name: {:global, poll_id})
@@ -16,9 +15,6 @@ defmodule HelloWeb.Poll do
     state = %{
       poll: poll,
       timer_ref: schedule_timer(),
-      last_reset_time: :erlang.system_time(:millisecond),
-      countdown: @inactive_timeout,
-      update_ref: schedule_update(@update_interval)
     }
 
     {:ok, state}
@@ -44,28 +40,12 @@ defmodule HelloWeb.Poll do
     {:stop, :normal, state}
   end
 
-  def handle_info(:update, state) do
-    current_time = :erlang.system_time(:millisecond)
-    time_since_last_reset = current_time - state.last_reset_time
-    remaining_time = @inactive_timeout - time_since_last_reset
-
-    schedule_update(@update_interval)
-
-    Phoenix.PubSub.broadcast(
-      Hello.PubSub,
-      "poll:#{state.poll.name}",
-      {:countdown_update, remaining_time}
-    )
-
-    {:noreply, state}
-  end
-
   def handle_call(:get_vote_count, _from, state) do
     Process.cancel_timer(state.timer_ref)
     new_timer_ref = schedule_timer()
 
     {:reply, state.poll.vote_count,
-     %{state | timer_ref: new_timer_ref, last_reset_time: :erlang.system_time(:millisecond)}}
+     %{state | timer_ref: new_timer_ref}}
   end
 
   def handle_cast(:increment_vote, state) do
@@ -88,17 +68,12 @@ defmodule HelloWeb.Poll do
      %{
        state
        | poll: updated_poll,
-         timer_ref: new_timer_ref,
-         last_reset_time: :erlang.system_time(:millisecond)
+         timer_ref: new_timer_ref
      }}
   end
 
   defp schedule_timer do
     Process.send_after(self(), :timeout, @inactive_timeout)
-  end
-
-  defp schedule_update(interval) do
-    Process.send_after(self(), :update, interval)
   end
 
   defp ensure_poll_process(poll_id) do
