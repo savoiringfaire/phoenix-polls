@@ -32,15 +32,15 @@ defmodule HelloWeb.Poll do
     GenServer.cast({:global, poll_id}, :increment_vote)
   end
 
+  def terminate(_reason, _state) do
+    # Perform any necessary cleanup
+    :ok
+  end
+
   def handle_info(:timeout, state) do
     # Terminate if timeout message is received
     IO.puts("Stopping")
     {:stop, :normal, state}
-  end
-
-  def terminate(_reason, _state) do
-    # Perform any necessary cleanup
-    :ok
   end
 
   def handle_info(:update, state) do
@@ -89,7 +89,7 @@ defmodule HelloWeb.Poll do
       case HelloWeb.PollSupervisor.start_poll(poll_id) do
         {:ok, _pid} -> :ok
         {:error, _reason} -> 
-          # Handle error (e.g., log it or raise an exception)
+          IO.puts(_reason)
       end
     else
       :ok
