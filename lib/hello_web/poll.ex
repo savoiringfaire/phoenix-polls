@@ -88,8 +88,8 @@ defmodule HelloWeb.Poll do
     if :global.whereis_name(poll_id) == :undefined do
       case HelloWeb.PollSupervisor.start_poll(poll_id) do
         {:ok, _pid} -> :ok
-        {:error, _reason} -> 
-          IO.puts(_reason)
+        {:error, reason} -> 
+          IO.puts(reason)
       end
     else
       :ok
