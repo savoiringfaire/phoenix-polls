@@ -1,0 +1,57 @@
+# docker-compose.yml
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: hello_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web1:
+    hostname: web1.elixir
+    build: .
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=hello_dev
+      - HOSTNAME=web1.elixir
+    volumes:
+       - ./mix.exs:/app/mix.exs
+       - ./lib:/app/lib
+       - ./priv:/app/priv
+       - ./web:/app/web
+       - ./config:/app/config
+    ports:
+      - "4000:4000"
+
+  web2.elixir:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=hello_dev
+      - HOSTNAME=web2.elixir
+    volumes:
+       - ./mix.exs:/app/mix.exs
+       - ./lib:/app/lib
+       - ./priv:/app/priv
+       - ./web:/app/web
+       - ./config:/app/config
+    ports:
+      - "4001:4000"
+
+volumes:
+  pgdata:
+
