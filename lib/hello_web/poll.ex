@@ -14,7 +14,7 @@ defmodule HelloWeb.Poll do
 
     state = %{
       poll: poll,
-      timer_ref: schedule_timer(),
+      timer_ref: schedule_timer()
     }
 
     {:ok, state}
@@ -44,8 +44,7 @@ defmodule HelloWeb.Poll do
     Process.cancel_timer(state.timer_ref)
     new_timer_ref = schedule_timer()
 
-    {:reply, state.poll.vote_count,
-     %{state | timer_ref: new_timer_ref}}
+    {:reply, state.poll.vote_count, %{state | timer_ref: new_timer_ref}}
   end
 
   def handle_cast(:increment_vote, state) do
